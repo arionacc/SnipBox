@@ -54,18 +54,6 @@ The project uses Gradle and Kotlin with no extra UI libraries beyond AppCompat a
 
 The resulting APK is in `app/build/outputs/apk/debug/`. If you use GitHub Actions, run the same command in your workflow and upload the APK as an artifact.
 
-## Code structure
-
-```
-app/src/main/java/com/arionacc/snipbox/
-├── MainActivity.kt        Main screen, snippet editor, categories, settings menu
-├── OverlayService.kt      Floating bubble and overlay panel (drag, resize)
-├── OverlayTileService.kt  Quick Settings tile
-├── Ui.kt                  Colors, UI components, snippet card adapter, category chips
-├── Prefs.kt               Size/position settings and category storage
-└── SnipApp.kt             Application class and last-crash logger
-```
-
 If the app stops unexpectedly, a dialog with the error details (which you can copy) appears the next time you open it. This is useful for reporting bugs.
 
 ## Contributing
