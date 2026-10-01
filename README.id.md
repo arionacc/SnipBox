@@ -6,6 +6,10 @@ Aplikasi Android untuk menyimpan **code, function, dan command favorit** dan men
 
 Semua data tersimpan lokal di perangkat. Aplikasi ini tidak meminta izin internet.
 
+![Build](https://github.com/arionacc/SnipBox/actions/workflows/build.yml/badge.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)
+
 ## Fitur
 
 - **Simpan snippet:** judul, isi, dan kategori. Ketuk snippet untuk menyalin ke clipboard.
