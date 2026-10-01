@@ -54,18 +54,6 @@ Proyek ini memakai Gradle dan Kotlin tanpa library UI tambahan di luar AppCompat
 
 APK hasil build ada di `app/build/outputs/apk/debug/`. Kalau kamu memakai GitHub Actions, jalankan perintah yang sama di workflow lalu unggah APK sebagai artifact.
 
-## Struktur kode
-
-```
-app/src/main/java/com/arionacc/snipbox/
-├── MainActivity.kt        Layar utama, editor snippet, kategori, menu pengaturan
-├── OverlayService.kt      Ikon melayang dan panel overlay (geser, ubah ukuran)
-├── OverlayTileService.kt  Tile Quick Settings
-├── Ui.kt                  Warna, komponen UI, adapter kartu snippet, chip kategori
-├── Prefs.kt               Pengaturan ukuran/posisi dan penyimpanan kategori
-└── SnipApp.kt             Application class dan pencatat crash terakhir
-```
-
 Kalau aplikasi berhenti tiba-tiba, saat dibuka lagi akan muncul dialog berisi detail error yang bisa disalin. Ini berguna untuk melaporkan bug.
 
 ## Kontribusi
