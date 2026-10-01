@@ -13,33 +13,32 @@ jobs:
       - name: Checkout kode
         uses: actions/checkout@v4
 
-      - name: Setup JDK 17
+      - name: Pasang JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK packages
-        shell: bash
+      # Android SDK sudah terpasang di runner ubuntu-latest, jadi cukup
+      # menerima lisensi dan memastikan platform 34 tersedia.
+      - name: Siapkan Android SDK
         run: |
-          set -eux
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
-            "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKM" ]; then SDKM="$(ls -d $ANDROID_HOME/cmdline-tools/*/bin/sdkmanager | head -n 1)"; fi
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Setup Gradle
+      - name: Pasang Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
 
       - name: Build APK debug
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
-        run: |
-          chmod +x ./gradlew
-          ./gradlew assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace
+
+      - name: Unggah APK sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SnipBox-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
