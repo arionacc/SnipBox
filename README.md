@@ -6,6 +6,9 @@ An Android app for saving your favorite **code, functions, and commands** and co
 
 All data is stored locally on the device. The app does not request internet permission.
 
+![Build](https://github.com/arionacc/SnipBox/actions/workflows/build.yml/badge.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)
 ## Features
 
 - **Save snippets:** title, content, and category. Tap a snippet to copy it to the clipboard.
