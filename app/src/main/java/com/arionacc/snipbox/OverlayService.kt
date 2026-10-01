@@ -119,7 +119,7 @@ class OverlayService : Service() {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         try { nm.deleteNotificationChannel(OLD_CHANNEL_ID) } catch (_: Exception) {}
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Overlay SnipBox", NotificationManager.IMPORTANCE_LOW)
+            NotificationChannel(CHANNEL_ID, getString(R.string.notif_channel_name), NotificationManager.IMPORTANCE_LOW)
                 .apply { setShowBadge(false) }
         )
     }
@@ -169,13 +169,13 @@ class OverlayService : Service() {
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_snip)
-            .setContentTitle("SnipBox aktif")
-            .setContentText("Ketuk ikon melayang untuk membuka snippet")
+            .setContentTitle(getString(R.string.notif_title))
+            .setContentText(getString(R.string.notif_text))
             .setOngoing(true)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
-            .addAction(R.drawable.ic_stat_snip, "Buka Overlay", action(ACTION_TOGGLE, 1))
-            .addAction(R.drawable.ic_close, "Matikan", action(ACTION_STOP, 2))
+            .addAction(R.drawable.ic_stat_snip, getString(R.string.notif_action_open), action(ACTION_TOGGLE, 1))
+            .addAction(R.drawable.ic_close, getString(R.string.btn_disable), action(ACTION_STOP, 2))
             .build()
     }
 
@@ -278,7 +278,7 @@ class OverlayService : Service() {
             bubbleParams = params
         } catch (e: Exception) {
             android.widget.Toast.makeText(
-                this, "Gagal menampilkan ikon: ${e.message}", android.widget.Toast.LENGTH_LONG
+                this, getString(R.string.toast_bubble_failed, e.message ?: ""), android.widget.Toast.LENGTH_LONG
             ).show()
         }
     }
@@ -316,7 +316,7 @@ class OverlayService : Service() {
         status.setPadding(dp(4), dp(8), dp(4), 0)
 
         fun flash(title: String) {
-            status.text = "✓ Tersalin: $title"
+            status.text = getString(R.string.copied_status, title)
             status.visibility = View.VISIBLE
             hideStatus?.let { handler.removeCallbacks(it) }
             val r = Runnable { status.visibility = View.GONE }
@@ -339,16 +339,16 @@ class OverlayService : Service() {
                         s.content.lowercase().contains(q))
             }
             emptyTv.text = when {
-                all.isEmpty() -> "Belum ada snippet.\nTambahkan lewat aplikasi SnipBox."
-                q.isNotEmpty() -> "Tidak ada hasil untuk \"$q\""
-                else -> "Belum ada snippet di kategori ini."
+                all.isEmpty() -> getString(R.string.overlay_empty_none)
+                q.isNotEmpty() -> getString(R.string.overlay_no_results, q)
+                else -> getString(R.string.empty_no_snippets_cat)
             }
             snipAdapter.notifyDataSetChanged()
         }
 
         // Kolom pencarian
         val search = EditText(this)
-        search.hint = "Cari snippet..."
+        search.hint = getString(R.string.search_hint)
         search.setTextColor(Ui.TEXT)
         search.setHintTextColor(Ui.TEXT_DIM)
         search.textSize = 14f
@@ -569,7 +569,7 @@ class OverlayService : Service() {
             panelParams = params
         } catch (e: Exception) {
             android.widget.Toast.makeText(
-                this, "Gagal menampilkan panel: ${e.message}", android.widget.Toast.LENGTH_LONG
+                this, getString(R.string.toast_panel_failed, e.message ?: ""), android.widget.Toast.LENGTH_LONG
             ).show()
             showBubble()
         }

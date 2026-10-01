@@ -181,7 +181,7 @@ class CategoryBar(private val ctx: Context) {
                 marginEnd = ctx.dp(8)
             })
         }
-        if (showAll) add("Semua", selected == null, { onSelect(null) })
+        if (showAll) add(ctx.getString(R.string.chip_all), selected == null, { onSelect(null) })
         categories.forEach { cat ->
             add(cat, cat.equals(selected, true), { onSelect(cat) }, onLongPress?.let { f -> { f(cat) } })
         }

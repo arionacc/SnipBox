@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Main screen -->
+    <string name="app_tagline">Save your favorite code, functions, and commands</string>
+    <string name="btn_enable_overlay">Enable overlay</string>
+    <string name="btn_disable">Disable</string>
+    <string name="btn_add">+  Add</string>
+    <string name="label_snippets">SNIPPETS</string>
+    <string name="label_snippets_count">SNIPPETS (%1$d)</string>
+    <string name="empty_no_snippets">No snippets yet.\nTap + Add to create your first one.</string>
+    <string name="empty_no_snippets_cat">No snippets in this category yet.</string>
+    <string name="toast_copied">Copied to clipboard</string>
+
+    <!-- Menus and dialogs -->
+    <string name="menu_edit">Edit</string>
+    <string name="menu_delete">Delete</string>
+    <string name="menu_rename">Rename</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_copy">Copy</string>
+    <string name="btn_close">Close</string>
+    <string name="btn_reset">Reset</string>
+    <string name="btn_got_it">Got it</string>
+    <string name="chip_all">All</string>
+
+    <!-- Categories -->
+    <string name="dlg_new_category">New category</string>
+    <string name="dlg_rename_category">Rename category</string>
+    <string name="hint_category_name">Category name</string>
+    <string name="toast_category_exists">Category already exists</string>
+    <string name="toast_category_not_empty">Move or delete the snippets in this category first</string>
+
+    <!-- Snippet editor -->
+    <string name="dlg_new_snippet">New snippet</string>
+    <string name="dlg_edit_snippet">Edit snippet</string>
+    <string name="hint_title">Title</string>
+    <string name="hint_content">Code / function / command content</string>
+    <string name="label_category">CATEGORY</string>
+    <string name="label_content">CONTENT</string>
+    <string name="untitled">Untitled</string>
+
+    <!-- Settings menu -->
+    <string name="menu_overlay_size">Overlay &amp; icon size</string>
+    <string name="menu_qs_tile">Quick Settings tile</string>
+    <string name="menu_allow_background">Allow running in background</string>
+    <string name="qs_tile_help">Pull down the notification shade, tap the pencil or add icon, then drag the \"SnipBox\" tile into the quick panel. Tap the tile to turn the floating bubble on or off, including on Samsung phones.</string>
+    <string name="toast_already_allowed">Already allowed</string>
+    <string name="toast_allow_overlay_first">Allow \"Display over other apps\" first</string>
+    <string name="dlg_overlay_size">Overlay size</string>
+    <string name="slider_panel_width">Panel width</string>
+    <string name="slider_panel_height">Panel height</string>
+    <string name="slider_icon_size">Icon size</string>
+    <string name="size_tip">Tip: in the overlay panel, drag the small bar at the top to move the panel, and drag the bottom-right corner to resize it.</string>
+    <string name="dlg_crash_title">The app stopped unexpectedly</string>
+
+    <!-- Overlay and notification -->
+    <string name="notif_channel_name">SnipBox overlay</string>
+    <string name="notif_title">SnipBox is active</string>
+    <string name="notif_text">Tap the floating bubble to open your snippets</string>
+    <string name="notif_action_open">Open overlay</string>
+    <string name="toast_bubble_failed">Failed to show the bubble: %1$s</string>
+    <string name="toast_panel_failed">Failed to show the panel: %1$s</string>
+    <string name="copied_status">✓ Copied: %1$s</string>
+    <string name="overlay_empty_none">No snippets yet.\nAdd some in the SnipBox app.</string>
+    <string name="overlay_no_results">No results for \"%1$s\"</string>
+    <string name="search_hint">Search snippets...</string>
+</resources>

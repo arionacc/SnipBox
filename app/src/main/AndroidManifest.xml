@@ -13,6 +13,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="SnipBox"
+        android:localeConfig="@xml/locales_config"
         android:theme="@style/Theme.SnipBox">
 
         <activity

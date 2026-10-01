@@ -52,13 +52,13 @@ class MainActivity : AppCompatActivity() {
         titleView.setTextColor(Ui.TEXT)
 
         val subtitle = TextView(this)
-        subtitle.text = "Simpan code, function, dan command favoritmu"
+        subtitle.text = getString(R.string.app_tagline)
         subtitle.textSize = 13f
         subtitle.setTextColor(Ui.TEXT_DIM)
 
         // Tombol overlay: tinggi sama, lebar sama
-        val btnOverlay = Ui.pill(this, "Aktifkan overlay", Ui.ACCENT, Ui.BG) { startOverlay() }
-        val btnStop = Ui.pill(this, "Matikan", Ui.CARD, Ui.TEXT) {
+        val btnOverlay = Ui.pill(this, getString(R.string.btn_enable_overlay), Ui.ACCENT, Ui.BG) { startOverlay() }
+        val btnStop = Ui.pill(this, getString(R.string.btn_disable), Ui.CARD, Ui.TEXT) {
             startService(
                 Intent(this, OverlayService::class.java)
                     .setAction(OverlayService.ACTION_STOP)
@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         headerRow.addView(titles, LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
         headerRow.addView(btnMore, LinearLayout.LayoutParams(dp(40), dp(40)))
 
-        countLabel = Ui.label(this, "SNIPPET")
+        countLabel = Ui.label(this, getString(R.string.label_snippets))
 
         // Kategori
         catBar = CategoryBar(this)
@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity() {
             val target = shown[pos]
             AlertDialog.Builder(this)
                 .setTitle(target.title)
-                .setItems(arrayOf("Edit", "Hapus")) { _, which ->
+                .setItems(arrayOf(getString(R.string.menu_edit), getString(R.string.menu_delete))) { _, which ->
                     if (which == 0) {
                         showEditor(target)
                     } else {
@@ -150,7 +150,7 @@ class MainActivity : AppCompatActivity() {
         column.addView(listHolder, LinearLayout.LayoutParams(Ui.MATCH, 0, 1f))
 
         // Tombol tambah mengambang
-        val fab = Ui.pill(this, "+  Tambah", Ui.ACCENT, Ui.BG) { showEditor(null) }
+        val fab = Ui.pill(this, getString(R.string.btn_add), Ui.ACCENT, Ui.BG) { showEditor(null) }
         fab.textSize = 15f
         fab.elevation = dp(8).toFloat()
         val fabParams = FrameLayout.LayoutParams(dp(132), dp(48), Gravity.BOTTOM or Gravity.END)
@@ -175,15 +175,15 @@ class MainActivity : AppCompatActivity() {
             cats, f,
             onSelect = { filter = it; refresh() },
             onLongPress = { showCategoryMenu(it) },
-            onAdd = { promptCategory("Kategori baru", "") { name -> addCategory(name) } }
+            onAdd = { promptCategory(getString(R.string.dlg_new_category), "") { name -> addCategory(name) } }
         )
         empty.text = if (snippets.isEmpty()) {
-            "Belum ada snippet.\nKetuk + Tambah untuk membuat yang pertama."
+            getString(R.string.empty_no_snippets)
         } else {
-            "Belum ada snippet di kategori ini."
+            getString(R.string.empty_no_snippets_cat)
         }
         adapter.notifyDataSetChanged()
-        countLabel.text = if (f == null) "SNIPPET (${shown.size})" else "${f.uppercase()} (${shown.size})"
+        countLabel.text = if (f == null) getString(R.string.label_snippets_count, shown.size) else "${f.uppercase()} (${shown.size})"
     }
 
     private fun persist() {
@@ -195,13 +195,13 @@ class MainActivity : AppCompatActivity() {
     private fun copy(text: String) {
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         cm.setPrimaryClip(ClipData.newPlainText("snippet", text))
-        Toast.makeText(this, "Tersalin ke clipboard", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
     }
 
     // ---------- Kategori ----------
 
     private fun promptCategory(title: String, initial: String, onOk: (String) -> Unit) {
-        val et = Ui.field(this, "Nama kategori", false)
+        val et = Ui.field(this, getString(R.string.hint_category_name), false)
         et.setText(initial)
         et.setSelection(et.text.length)
         val box = FrameLayout(this)
@@ -210,18 +210,18 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle(title)
             .setView(box)
-            .setPositiveButton("Simpan") { _, _ ->
+            .setPositiveButton(getString(R.string.btn_save)) { _, _ ->
                 val name = et.text.toString().trim()
                 if (name.isNotEmpty()) onOk(name)
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton(getString(R.string.btn_cancel), null)
             .show()
     }
 
     private fun addCategory(name: String): Boolean {
         val cats = Categories.all(this, snippets)
         if (cats.any { it.equals(name, true) }) {
-            Toast.makeText(this, "Kategori sudah ada", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_category_exists), Toast.LENGTH_SHORT).show()
             return false
         }
         cats.add(name)
@@ -234,9 +234,9 @@ class MainActivity : AppCompatActivity() {
     private fun showCategoryMenu(name: String) {
         AlertDialog.Builder(this)
             .setTitle(name)
-            .setItems(arrayOf("Ganti nama", "Hapus")) { _, which ->
+            .setItems(arrayOf(getString(R.string.menu_rename), getString(R.string.menu_delete))) { _, which ->
                 if (which == 0) {
-                    promptCategory("Ganti nama kategori", name) { newName -> renameCategory(name, newName) }
+                    promptCategory(getString(R.string.dlg_rename_category), name) { newName -> renameCategory(name, newName) }
                 } else {
                     deleteCategory(name)
                 }
@@ -246,7 +246,7 @@ class MainActivity : AppCompatActivity() {
     private fun renameCategory(old: String, new: String) {
         val cats = Categories.all(this, snippets)
         if (!old.equals(new, true) && cats.any { it.equals(new, true) }) {
-            Toast.makeText(this, "Kategori sudah ada", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_category_exists), Toast.LENGTH_SHORT).show()
             return
         }
         val idx = cats.indexOfFirst { it.equals(old, true) }
@@ -261,7 +261,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun deleteCategory(name: String) {
         if (snippets.any { it.type.equals(name, true) }) {
-            Toast.makeText(this, "Pindahkan atau hapus snippet di kategori ini dulu", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.toast_category_not_empty), Toast.LENGTH_LONG).show()
             return
         }
         val cats = Categories.all(this, snippets)
@@ -277,10 +277,10 @@ class MainActivity : AppCompatActivity() {
         val cats = Categories.all(this, snippets)
         var selected = existing?.type ?: filter ?: cats.firstOrNull() ?: "Code"
 
-        val etTitle = Ui.field(this, "Judul", false)
+        val etTitle = Ui.field(this, getString(R.string.hint_title), false)
         etTitle.setText(existing?.title ?: "")
 
-        val etContent = Ui.field(this, "Isi code / function / command", true)
+        val etContent = Ui.field(this, getString(R.string.hint_content), true)
         etContent.setText(existing?.content ?: "")
 
         val bar = CategoryBar(this)
@@ -289,7 +289,7 @@ class MainActivity : AppCompatActivity() {
                 cats, selected,
                 onSelect = { if (it != null) { selected = it; renderBar() } },
                 onAdd = {
-                    promptCategory("Kategori baru", "") { name ->
+                    promptCategory(getString(R.string.dlg_new_category), "") { name ->
                         if (cats.none { c -> c.equals(name, true) }) {
                             cats.add(name)
                             Categories.save(this, cats)
@@ -307,19 +307,19 @@ class MainActivity : AppCompatActivity() {
         box.orientation = LinearLayout.VERTICAL
         box.setPadding(dp(20), dp(8), dp(20), 0)
         box.addView(etTitle)
-        box.addView(Ui.label(this, "KATEGORI"))
+        box.addView(Ui.label(this, getString(R.string.label_category)))
         box.addView(bar.view)
-        box.addView(Ui.label(this, "ISI"))
+        box.addView(Ui.label(this, getString(R.string.label_content)))
         box.addView(etContent)
 
         val scroll = ScrollView(this)
         scroll.addView(box)
 
         AlertDialog.Builder(this)
-            .setTitle(if (existing == null) "Snippet baru" else "Edit snippet")
+            .setTitle(if (existing == null) getString(R.string.dlg_new_snippet) else getString(R.string.dlg_edit_snippet))
             .setView(scroll)
-            .setPositiveButton("Simpan") { _, _ ->
-                val t = etTitle.text.toString().ifBlank { "Tanpa judul" }
+            .setPositiveButton(getString(R.string.btn_save)) { _, _ ->
+                val t = etTitle.text.toString().ifBlank { getString(R.string.untitled) }
                 val c = etContent.text.toString()
                 if (existing == null) {
                     snippets.add(0, Snippet(System.currentTimeMillis(), t, c, selected))
@@ -330,7 +330,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 persist()
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton(getString(R.string.btn_cancel), null)
             .show()
     }
 
@@ -338,20 +338,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun showMenu(anchor: View) {
         val menu = androidx.appcompat.widget.PopupMenu(this, anchor, Gravity.END)
-        menu.menu.add(0, 0, 0, "Ukuran overlay & ikon")
-        menu.menu.add(0, 1, 1, "Tile Quick Settings")
-        menu.menu.add(0, 2, 2, "Izinkan jalan di latar belakang")
+        menu.menu.add(0, 0, 0, getString(R.string.menu_overlay_size))
+        menu.menu.add(0, 1, 1, getString(R.string.menu_qs_tile))
+        menu.menu.add(0, 2, 2, getString(R.string.menu_allow_background))
         menu.setOnMenuItemClickListener {
             when (it.itemId) {
                 0 -> showSizeDialog()
                 1 -> AlertDialog.Builder(this)
-                    .setTitle("Tile Quick Settings")
-                    .setMessage(
-                        "Tarik panel notifikasi ke bawah, ketuk ikon pensil atau tombol tambah, " +
-                            "lalu seret tile \"SnipBox\" ke panel cepat. Ketuk tile untuk " +
-                            "menyalakan atau mematikan ikon melayang, termasuk di HP Samsung."
-                    )
-                    .setPositiveButton("Mengerti", null)
+                    .setTitle(getString(R.string.menu_qs_tile))
+                    .setMessage(getString(R.string.qs_tile_help))
+                    .setPositiveButton(getString(R.string.btn_got_it), null)
                     .show()
                 2 -> requestBatteryExemption()
             }
@@ -363,7 +359,7 @@ class MainActivity : AppCompatActivity() {
     private fun requestBatteryExemption() {
         val pm = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
         if (pm.isIgnoringBatteryOptimizations(packageName)) {
-            Toast.makeText(this, "Sudah diizinkan", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_already_allowed), Toast.LENGTH_SHORT).show()
             return
         }
         try {
@@ -418,29 +414,29 @@ class MainActivity : AppCompatActivity() {
         val box = LinearLayout(this)
         box.orientation = LinearLayout.VERTICAL
         box.setPadding(dp(24), dp(8), dp(24), 0)
-        box.addView(slider("Lebar panel", Prefs.PANEL_W_MIN, Prefs.PANEL_W_MAX, w, "%") { w = it })
-        box.addView(slider("Tinggi panel", Prefs.PANEL_H_MIN, Prefs.PANEL_H_MAX, h, "%") { h = it })
-        box.addView(slider("Ukuran ikon", Prefs.BUBBLE_MIN, Prefs.BUBBLE_MAX, b, "dp") { b = it })
+        box.addView(slider(getString(R.string.slider_panel_width), Prefs.PANEL_W_MIN, Prefs.PANEL_W_MAX, w, "%") { w = it })
+        box.addView(slider(getString(R.string.slider_panel_height), Prefs.PANEL_H_MIN, Prefs.PANEL_H_MAX, h, "%") { h = it })
+        box.addView(slider(getString(R.string.slider_icon_size), Prefs.BUBBLE_MIN, Prefs.BUBBLE_MAX, b, "dp") { b = it })
         val tip = TextView(this)
-        tip.text = "Tips: di panel overlay, tarik garis kecil di atas untuk memindahkan panel, dan tarik sudut kanan bawah untuk mengubah ukuran."
+        tip.text = getString(R.string.size_tip)
         tip.textSize = 12f
         tip.setTextColor(Ui.TEXT_DIM)
         tip.setPadding(0, dp(16), 0, 0)
         box.addView(tip)
 
         AlertDialog.Builder(this)
-            .setTitle("Ukuran overlay")
+            .setTitle(getString(R.string.dlg_overlay_size))
             .setView(box)
-            .setPositiveButton("Simpan") { _, _ ->
+            .setPositiveButton(getString(R.string.btn_save)) { _, _ ->
                 Prefs.setSizes(this, w, h, b)
                 refreshOverlay()
             }
-            .setNeutralButton("Reset") { _, _ ->
+            .setNeutralButton(getString(R.string.btn_reset)) { _, _ ->
                 Prefs.setSizes(this, 88, 42, 52)
                 Prefs.resetPositions(this)
                 refreshOverlay()
             }
-            .setNegativeButton("Batal", null)
+            .setNegativeButton(getString(R.string.btn_cancel), null)
             .show()
     }
 
@@ -454,7 +450,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun startOverlay() {
         if (!Settings.canDrawOverlays(this)) {
-            Toast.makeText(this, "Izinkan 'Tampil di atas aplikasi lain' dulu", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.toast_allow_overlay_first), Toast.LENGTH_LONG).show()
             startActivity(
                 Intent(
                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -496,10 +492,10 @@ class MainActivity : AppCompatActivity() {
         val scroll = ScrollView(this)
         scroll.addView(tv)
         AlertDialog.Builder(this)
-            .setTitle("Aplikasi sempat berhenti")
+            .setTitle(getString(R.string.dlg_crash_title))
             .setView(scroll)
-            .setPositiveButton("Salin") { _, _ -> copy(report) }
-            .setNegativeButton("Tutup", null)
+            .setPositiveButton(getString(R.string.btn_copy)) { _, _ -> copy(report) }
+            .setNegativeButton(getString(R.string.btn_close), null)
             .show()
     }
 }

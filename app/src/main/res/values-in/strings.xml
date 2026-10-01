@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Layar utama -->
+    <string name="app_tagline">Simpan code, function, dan command favoritmu</string>
+    <string name="btn_enable_overlay">Aktifkan overlay</string>
+    <string name="btn_disable">Matikan</string>
+    <string name="btn_add">+  Tambah</string>
+    <string name="label_snippets">SNIPPET</string>
+    <string name="label_snippets_count">SNIPPET (%1$d)</string>
+    <string name="empty_no_snippets">Belum ada snippet.\nKetuk + Tambah untuk membuat yang pertama.</string>
+    <string name="empty_no_snippets_cat">Belum ada snippet di kategori ini.</string>
+    <string name="toast_copied">Tersalin ke clipboard</string>
+
+    <!-- Menu dan dialog -->
+    <string name="menu_edit">Edit</string>
+    <string name="menu_delete">Hapus</string>
+    <string name="menu_rename">Ganti nama</string>
+    <string name="btn_save">Simpan</string>
+    <string name="btn_cancel">Batal</string>
+    <string name="btn_copy">Salin</string>
+    <string name="btn_close">Tutup</string>
+    <string name="btn_reset">Reset</string>
+    <string name="btn_got_it">Mengerti</string>
+    <string name="chip_all">Semua</string>
+
+    <!-- Kategori -->
+    <string name="dlg_new_category">Kategori baru</string>
+    <string name="dlg_rename_category">Ganti nama kategori</string>
+    <string name="hint_category_name">Nama kategori</string>
+    <string name="toast_category_exists">Kategori sudah ada</string>
+    <string name="toast_category_not_empty">Pindahkan atau hapus snippet di kategori ini dulu</string>
+
+    <!-- Editor snippet -->
+    <string name="dlg_new_snippet">Snippet baru</string>
+    <string name="dlg_edit_snippet">Edit snippet</string>
+    <string name="hint_title">Judul</string>
+    <string name="hint_content">Isi code / function / command</string>
+    <string name="label_category">KATEGORI</string>
+    <string name="label_content">ISI</string>
+    <string name="untitled">Tanpa judul</string>
+
+    <!-- Menu pengaturan -->
+    <string name="menu_overlay_size">Ukuran overlay &amp; ikon</string>
+    <string name="menu_qs_tile">Tile Quick Settings</string>
+    <string name="menu_allow_background">Izinkan jalan di latar belakang</string>
+    <string name="qs_tile_help">Tarik panel notifikasi ke bawah, ketuk ikon pensil atau tombol tambah, lalu seret tile \"SnipBox\" ke panel cepat. Ketuk tile untuk menyalakan atau mematikan ikon melayang, termasuk di HP Samsung.</string>
+    <string name="toast_already_allowed">Sudah diizinkan</string>
+    <string name="toast_allow_overlay_first">Izinkan \'Tampil di atas aplikasi lain\' dulu</string>
+    <string name="dlg_overlay_size">Ukuran overlay</string>
+    <string name="slider_panel_width">Lebar panel</string>
+    <string name="slider_panel_height">Tinggi panel</string>
+    <string name="slider_icon_size">Ukuran ikon</string>
+    <string name="size_tip">Tips: di panel overlay, tarik garis kecil di atas untuk memindahkan panel, dan tarik sudut kanan bawah untuk mengubah ukuran.</string>
+    <string name="dlg_crash_title">Aplikasi sempat berhenti</string>
+
+    <!-- Overlay dan notifikasi -->
+    <string name="notif_channel_name">Overlay SnipBox</string>
+    <string name="notif_title">SnipBox aktif</string>
+    <string name="notif_text">Ketuk ikon melayang untuk membuka snippet</string>
+    <string name="notif_action_open">Buka Overlay</string>
+    <string name="toast_bubble_failed">Gagal menampilkan ikon: %1$s</string>
+    <string name="toast_panel_failed">Gagal menampilkan panel: %1$s</string>
+    <string name="copied_status">✓ Tersalin: %1$s</string>
+    <string name="overlay_empty_none">Belum ada snippet.\nTambahkan lewat aplikasi SnipBox.</string>
+    <string name="overlay_no_results">Tidak ada hasil untuk \"%1$s\"</string>
+    <string name="search_hint">Cari snippet...</string>
+</resources>
