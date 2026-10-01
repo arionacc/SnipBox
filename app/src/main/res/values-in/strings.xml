@@ -64,4 +64,22 @@
     <string name="overlay_empty_none">Belum ada snippet.\nTambahkan lewat aplikasi SnipBox.</string>
     <string name="overlay_no_results">Tidak ada hasil untuk \"%1$s\"</string>
     <string name="search_hint">Cari snippet...</string>
+
+    <!-- Export, import, tentang -->
+    <string name="menu_export">Export data (.json)</string>
+    <string name="menu_import">Import data (.json)</string>
+    <string name="menu_about">Tentang</string>
+    <string name="toast_export_ok">%1$d snippet berhasil diexport</string>
+    <string name="toast_export_failed">Export gagal: %1$s</string>
+    <string name="toast_import_ok">Import selesai: %1$d ditambahkan, %2$d dilewati (sudah ada)</string>
+    <string name="toast_import_invalid">File tidak valid. Pilih file backup SnipBox (.json)</string>
+    <string name="toast_import_failed">Import gagal: %1$s</string>
+    <string name="about_version">Versi %1$s</string>
+    <string name="about_description">SnipBox menyimpan code, function, dan command favoritmu, lalu menyalinnya dengan satu ketukan dari mana saja lewat ikon melayang. Semua data tersimpan di perangkatmu, dan aplikasi ini tidak meminta izin internet.</string>
+    <string name="about_made_by_label">DIBUAT OLEH</string>
+    <string name="about_made_by">Arion</string>
+    <string name="about_license_label">LISENSI</string>
+    <string name="about_license">MIT License. Hak cipta (c) 2026 Arion. Bebas dipakai, disalin, diubah, dan disebarkan selama pemberitahuan hak cipta dan lisensi tetap disertakan.</string>
+    <string name="about_source_label">KODE SUMBER</string>
+    <string name="about_source">https://github.com/arionacc/SnipBox</string>
 </resources>

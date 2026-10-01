@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.text.util.Linkify
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
@@ -23,6 +24,7 @@ import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -37,6 +39,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var countLabel: TextView
     private lateinit var catBar: CategoryBar
     private lateinit var empty: TextView
+
+    // Pemilih file bawaan Android (Storage Access Framework): bisa dari folder mana pun,
+    // tanpa izin penyimpanan tambahan.
+    private val exportLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri -> if (uri != null) doExport(uri) }
+
+    private val importLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri -> if (uri != null) doImport(uri) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -341,6 +353,9 @@ class MainActivity : AppCompatActivity() {
         menu.menu.add(0, 0, 0, getString(R.string.menu_overlay_size))
         menu.menu.add(0, 1, 1, getString(R.string.menu_qs_tile))
         menu.menu.add(0, 2, 2, getString(R.string.menu_allow_background))
+        menu.menu.add(0, 3, 3, getString(R.string.menu_export))
+        menu.menu.add(0, 4, 4, getString(R.string.menu_import))
+        menu.menu.add(0, 5, 5, getString(R.string.menu_about))
         menu.setOnMenuItemClickListener {
             when (it.itemId) {
                 0 -> showSizeDialog()
@@ -350,10 +365,98 @@ class MainActivity : AppCompatActivity() {
                     .setPositiveButton(getString(R.string.btn_got_it), null)
                     .show()
                 2 -> requestBatteryExemption()
+                3 -> exportLauncher.launch(Backup.fileName())
+                4 -> importLauncher.launch(arrayOf("*/*"))
+                5 -> showAbout()
             }
             true
         }
         menu.show()
+    }
+
+    // ---------- Export / Import ----------
+
+    private fun doExport(uri: Uri) {
+        try {
+            val json = Backup.export(this, snippets)
+            contentResolver.openOutputStream(uri, "wt")?.use { out ->
+                out.write(json.toByteArray(Charsets.UTF_8))
+            } ?: throw java.io.IOException("Cannot open file")
+            Toast.makeText(
+                this, getString(R.string.toast_export_ok, snippets.size), Toast.LENGTH_LONG
+            ).show()
+        } catch (e: Exception) {
+            Toast.makeText(
+                this, getString(R.string.toast_export_failed, e.message ?: ""), Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun doImport(uri: Uri) {
+        try {
+            val raw = contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                ?: throw java.io.IOException("Cannot open file")
+            val result = Backup.import(this, raw, snippets)
+            persist()
+            Toast.makeText(
+                this,
+                getString(R.string.toast_import_ok, result.added, result.skipped),
+                Toast.LENGTH_LONG
+            ).show()
+        } catch (e: Backup.InvalidBackupException) {
+            Toast.makeText(this, getString(R.string.toast_import_invalid), Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(
+                this, getString(R.string.toast_import_failed, e.message ?: ""), Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    // ---------- Tentang ----------
+
+    private fun showAbout() {
+        val version = try {
+            packageManager.getPackageInfo(packageName, 0).versionName ?: ""
+        } catch (e: Exception) {
+            ""
+        }
+
+        fun body(text: String, size: Float = 14f, color: Int = Ui.TEXT): TextView {
+            val tv = TextView(this)
+            tv.text = text
+            tv.textSize = size
+            tv.setTextColor(color)
+            tv.setLineSpacing(0f, 1.15f)
+            return tv
+        }
+
+        val name = body("SnipBox", 24f)
+        name.typeface = Typeface.DEFAULT_BOLD
+
+        val box = LinearLayout(this)
+        box.orientation = LinearLayout.VERTICAL
+        box.setPadding(dp(24), dp(8), dp(24), dp(8))
+        box.addView(name)
+        box.addView(body(getString(R.string.about_version, version), 13f, Ui.TEXT_DIM))
+        box.addView(body(getString(R.string.about_description)).apply { setPadding(0, dp(12), 0, 0) })
+        box.addView(Ui.label(this, getString(R.string.about_made_by_label)))
+        box.addView(body(getString(R.string.about_made_by)))
+        box.addView(Ui.label(this, getString(R.string.about_license_label)))
+        box.addView(body(getString(R.string.about_license)))
+        box.addView(Ui.label(this, getString(R.string.about_source_label)))
+        box.addView(body(getString(R.string.about_source)).apply {
+            autoLinkMask = Linkify.WEB_URLS
+            setLinkTextColor(Ui.TEXT)
+        })
+
+        val scroll = ScrollView(this)
+        scroll.addView(box)
+
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.menu_about))
+            .setView(scroll)
+            .setPositiveButton(getString(R.string.btn_close), null)
+            .show()
     }
 
     private fun requestBatteryExemption() {
