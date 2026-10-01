@@ -7,7 +7,7 @@ An Android app for saving your favorite **code, functions, and commands** and co
 All data is stored locally on the device. The app does not request internet permission.
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
+![Android](https://img.shields.io/badge/Android-8.0_or_Newer-3DDC84?logo=android&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Gradle-8.7-02303A?logo=gradle&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.24-7F52FF?logo=kotlin&logoColor=white)
 ## Features
