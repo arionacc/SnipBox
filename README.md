@@ -24,6 +24,12 @@ All data is stored locally on the device. The app does not request internet perm
 - **Landscape support**, and the bubble never slips under the navigation bar.
 - **Monochrome look** (black, gray, white).
 
+## Screenshots
+
+| Preview 1 | Preview 2 |
+|-------------|---------------|
+| ![Preview 1](Screenshot/Preview_1_Eng.png) | ![Preview 2](Screenshot/Preview_2_Eng.png) |
+
 ## Usage
 
 1. Open SnipBox, tap **+ Add**, enter a title, pick a category, write the snippet, then **Save**.
