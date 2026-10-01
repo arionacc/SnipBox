@@ -31,7 +31,7 @@ Semua data tersimpan lokal di perangkat. Aplikasi ini tidak meminta izin interne
 
 ## Screenshot
 
-| Preview 1 | Preview 2 |
+| Pratinjau 1 | Pratinjau 2 |
 |----------------|---------------|
 | ![Preview 1](Screenshot/Preview_1_Id.png) | ![Preview 2](Screenshot/Preview_2_Id.png) |
 
