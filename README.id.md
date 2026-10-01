@@ -25,6 +25,13 @@ Semua data tersimpan lokal di perangkat. Aplikasi ini tidak meminta izin interne
 - **Mendukung landscape**, dan ikon tidak akan masuk ke bawah bilah navigasi.
 - **Tampilan monochrome** (hitam, abu-abu, putih).
 
+## Screenshot
+
+| Preview 1 | Preview 2 |
+|----------------|---------------|
+| ![Tampilan Utama](Screenshot/Preview_1_Id.png) | ![Panel Overlay](Screenshot/Preview_2_Id.png) |
+| *Tampilan awal aplikasi* | *Opsi menambahkan snippet baru* |
+
 ## Cara pakai
 
 1. Buka SnipBox, ketuk **+ Tambah**, isi judul, pilih kategori, tulis isi snippet, lalu **Simpan**.
