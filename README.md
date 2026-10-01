@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Screenshot/Banner.png" width="100%" />
+</p>
+
 # SnipBox
 
 🌐 **English** | [Bahasa Indonesia](README.id.md)
