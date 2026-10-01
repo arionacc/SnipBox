@@ -7,7 +7,7 @@ Aplikasi Android untuk menyimpan **code, function, dan command favorit** dan men
 Semua data tersimpan lokal di perangkat. Aplikasi ini tidak meminta izin internet.
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Android](https://img.shields.io/badge/Android-8.0_or_Newer-3DDC84?logo=android&logoColor=white)
+![Android](https://img.shields.io/badge/Android-8.0_atau_Terbaru-3DDC84?logo=android&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Gradle-8.7-02303A?logo=gradle&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.24-7F52FF?logo=kotlin&logoColor=white)
 
@@ -29,8 +29,7 @@ Semua data tersimpan lokal di perangkat. Aplikasi ini tidak meminta izin interne
 
 | Preview 1 | Preview 2 |
 |----------------|---------------|
-| ![Tampilan Utama](Screenshot/Preview_1_Id.png) | ![Panel Overlay](Screenshot/Preview_2_Id.png) |
-| *Tampilan awal aplikasi* | *Opsi menambahkan snippet baru* |
+| ![Preview 1](Screenshot/Preview_1_Id.png) | ![Preview 2](Screenshot/Preview_2_Id.png) |
 
 ## Cara pakai
 
