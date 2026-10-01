@@ -44,15 +44,36 @@ Some devices kill background apps to save battery. If the bubble disappears on i
 | `POST_NOTIFICATIONS` | Overlay-active notification (Android 13+) |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Optional, so the system does not kill the overlay |
 
+## Download
+
+Get the latest APK from the [Releases](../../releases) page, or from the **Artifacts** section of any successful run in the [Actions](../../actions) tab. Installing it requires allowing **Install unknown apps** on your device.
+
 ## Build
 
-The project uses Gradle and Kotlin with no extra UI libraries beyond AppCompat and Material.
+The project uses Gradle and Kotlin with no extra UI libraries beyond AppCompat and Material. It needs JDK 17 and Gradle 8.7 or newer (or open the folder in Android Studio).
 
 ```bash
-./gradlew assembleDebug
+gradle assembleDebug
 ```
 
-The resulting APK is in `app/build/outputs/apk/debug/`. If you use GitHub Actions, run the same command in your workflow and upload the APK as an artifact.
+The resulting APK is in `app/build/outputs/apk/debug/`.
+
+### Build with GitHub Actions
+
+The workflow in `.github/workflows/build.yml` builds the debug APK on every push and uploads it as the **SnipBox-debug-apk** artifact. You can also start it manually from the Actions tab with **Run workflow**.
+
+## Code structure
+
+```
+app/src/main/java/com/arionacc/snipbox/
+├── MainActivity.kt        Main screen, snippet editor, categories, settings menu
+├── OverlayService.kt      Floating bubble and overlay panel (drag, resize)
+├── OverlayTileService.kt  Quick Settings tile
+├── Ui.kt                  Colors, UI components, snippet card adapter, category chips
+├── Prefs.kt               Size/position settings and category storage
+├── Snippet.kt             Snippet data class and local storage (SnippetStore)
+└── SnipApp.kt             Application class and last-crash logger
+```
 
 If the app stops unexpectedly, a dialog with the error details (which you can copy) appears the next time you open it. This is useful for reporting bugs.
 

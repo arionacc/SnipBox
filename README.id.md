@@ -44,15 +44,36 @@ Beberapa perangkat mematikan aplikasi di latar belakang untuk menghemat baterai.
 | `POST_NOTIFICATIONS` | Notifikasi overlay aktif (Android 13+) |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Opsional, agar overlay tidak dimatikan sistem |
 
+## Unduh
+
+Ambil APK terbaru dari halaman [Releases](../../releases), atau dari bagian **Artifacts** pada run yang berhasil di tab [Actions](../../actions). Untuk menginstalnya, izinkan **Instal aplikasi tidak dikenal** di perangkatmu.
+
 ## Build
 
-Proyek ini memakai Gradle dan Kotlin tanpa library UI tambahan di luar AppCompat dan Material.
+Proyek ini memakai Gradle dan Kotlin tanpa library UI tambahan di luar AppCompat dan Material. Dibutuhkan JDK 17 dan Gradle 8.7 atau lebih baru (atau buka foldernya di Android Studio).
 
 ```bash
-./gradlew assembleDebug
+gradle assembleDebug
 ```
 
-APK hasil build ada di `app/build/outputs/apk/debug/`. Kalau kamu memakai GitHub Actions, jalankan perintah yang sama di workflow lalu unggah APK sebagai artifact.
+APK hasil build ada di `app/build/outputs/apk/debug/`.
+
+### Build dengan GitHub Actions
+
+Workflow di `.github/workflows/build.yml` membangun APK debug setiap kali ada push, lalu mengunggahnya sebagai artifact **SnipBox-debug-apk**. Kamu juga bisa menjalankannya manual dari tab Actions lewat **Run workflow**.
+
+## Struktur kode
+
+```
+app/src/main/java/com/arionacc/snipbox/
+├── MainActivity.kt        Layar utama, editor snippet, kategori, menu pengaturan
+├── OverlayService.kt      Ikon melayang dan panel overlay (geser, ubah ukuran)
+├── OverlayTileService.kt  Tile Quick Settings
+├── Ui.kt                  Warna, komponen UI, adapter kartu snippet, chip kategori
+├── Prefs.kt               Pengaturan ukuran/posisi dan penyimpanan kategori
+├── Snippet.kt             Data class snippet dan penyimpanan lokal (SnippetStore)
+└── SnipApp.kt             Application class dan pencatat crash terakhir
+```
 
 Kalau aplikasi berhenti tiba-tiba, saat dibuka lagi akan muncul dialog berisi detail error yang bisa disalin. Ini berguna untuk melaporkan bug.
 
