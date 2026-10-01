@@ -13,39 +13,33 @@ jobs:
       - name: Checkout kode
         uses: actions/checkout@v4
 
-      - name: Pasang JDK 17
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Pasang Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          api-level: 34
-          build-tools: 34.0.0
-          cmdline-tools-version: latest
 
       - name: Install Android SDK packages
         shell: bash
         run: |
           set -eux
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
             "platform-tools" \
             "platforms;android-34" \
             "build-tools;34.0.0"
 
-      - name: Pasang Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
 
       - name: Build APK debug
-        run: gradle assembleDebug --stacktrace
-
-      - name: Unggah APK sebagai artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: SnipBox-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --stacktrace
