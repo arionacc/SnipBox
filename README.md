@@ -8,7 +8,7 @@
 
 An Android app for saving your favorite **code, functions, and commands** and copying them with a single tap, from anywhere, through a floating icon that appears on top of other apps.
 
-All data is stored locally on the device. The app does not request internet permission.
+All data is stored locally on the device. The app does not request internet permission. **Do not store important data or credentials in this application.**
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Android](https://img.shields.io/badge/Android-8.0_or_Newer-3DDC84?logo=android&logoColor=white)
