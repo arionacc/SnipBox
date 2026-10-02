@@ -13,6 +13,7 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.text.InputType
 import android.provider.Settings
 import android.text.util.Linkify
@@ -22,6 +23,8 @@ import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.ListView
 import android.widget.ScrollView
 import android.widget.SeekBar
@@ -67,12 +70,36 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Pilihan sementara di dialog backup otomatis saat pengguna pergi memilih folder
+    private var draftMode: Int? = null
+    private var draftEncrypt: Boolean? = null
+
+    private val treeLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            try {
+                contentResolver.takePersistableUriPermission(uri, flags)
+                val old = Prefs.autoTree(this)
+                if (old != null && old != uri.toString()) {
+                    try { contentResolver.releasePersistableUriPermission(Uri.parse(old), flags) } catch (_: Exception) {}
+                }
+                Prefs.setAutoTree(this, uri.toString())
+            } catch (e: Exception) {
+                Toast.makeText(this, getString(R.string.toast_folder_failed), Toast.LENGTH_LONG).show()
+            }
+        }
+        showAutoBackupDialog()
+    }
+
     private val importLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri -> if (uri != null) doImport(uri) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Ui.applyTheme(this)
 
         snippets = SnippetStore.load(this)
         adapter = SnippetAdapter(this) { shown }
@@ -146,12 +173,23 @@ class MainActivity : AppCompatActivity() {
             val target = shown[pos]
             AlertDialog.Builder(this)
                 .setTitle(target.title)
-                .setItems(arrayOf(getString(R.string.menu_edit), getString(R.string.menu_delete))) { _, which ->
-                    if (which == 0) {
-                        showEditor(target)
-                    } else {
-                        snippets.remove(target)
-                        persist()
+                .setItems(
+                    arrayOf(
+                        getString(R.string.menu_edit),
+                        getString(if (target.pinned) R.string.menu_unpin else R.string.menu_pin),
+                        getString(R.string.menu_delete)
+                    )
+                ) { _, which ->
+                    when (which) {
+                        0 -> showEditor(target)
+                        1 -> {
+                            target.pinned = !target.pinned
+                            persist()
+                        }
+                        else -> {
+                            snippets.remove(target)
+                            persist()
+                        }
                     }
                 }.show()
             true
@@ -195,6 +233,9 @@ class MainActivity : AppCompatActivity() {
         root.addView(fab, fabParams)
 
         setContentView(root)
+        val bars = androidx.core.view.WindowCompat.getInsetsController(window, root)
+        bars.isAppearanceLightStatusBars = !Ui.isDark(this)
+        bars.isAppearanceLightNavigationBars = !Ui.isDark(this)
         refresh()
     }
 
@@ -202,7 +243,7 @@ class MainActivity : AppCompatActivity() {
         val cats = Categories.all(this, snippets)
         if (filter != null && cats.none { it.equals(filter, true) }) filter = null
         val f = filter
-        shown = if (f == null) snippets else snippets.filter { it.type.equals(f, true) }
+        shown = (if (f == null) snippets else snippets.filter { it.type.equals(f, true) }).pinnedFirst()
 
         catBar.set(
             cats, f,
@@ -227,8 +268,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun copySnippet(snippet: Snippet) {
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        cm.setPrimaryClip(snippet.toClip())
-        Toast.makeText(this, getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
+        if (Template.variables(snippet.content).isEmpty()) {
+            cm.setPrimaryClip(snippet.toClip())
+            Toast.makeText(this, getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
+            return
+        }
+        // Ada variabel {{...}}: minta pengguna mengisi dulu
+        showFillDialog(this, snippet) { text ->
+            if (text != null) {
+                cm.setPrimaryClip(snippet.toClip(text))
+                Toast.makeText(this, getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun copy(text: String) {
@@ -322,6 +373,12 @@ class MainActivity : AppCompatActivity() {
         val etContent = Ui.field(this, getString(R.string.hint_content), true)
         etContent.setText(existing?.content ?: "")
 
+        val varHint = TextView(this)
+        varHint.text = getString(R.string.hint_variables)
+        varHint.textSize = 12f
+        varHint.setTextColor(Ui.TEXT_DIM)
+        varHint.setPadding(dp(4), dp(6), 0, 0)
+
         val cbSensitive = CheckBox(this)
         cbSensitive.text = getString(R.string.cb_sensitive)
         cbSensitive.textSize = 14f
@@ -362,6 +419,7 @@ class MainActivity : AppCompatActivity() {
         box.addView(bar.view)
         box.addView(Ui.label(this, getString(R.string.label_content)))
         box.addView(etContent)
+        box.addView(varHint)
         box.addView(cbSensitive, LinearLayout.LayoutParams(Ui.WRAP, Ui.WRAP).apply { topMargin = dp(12) })
         box.addView(sensitiveHint)
 
@@ -393,11 +451,13 @@ class MainActivity : AppCompatActivity() {
     private fun showMenu(anchor: View) {
         val menu = androidx.appcompat.widget.PopupMenu(this, anchor, Gravity.END)
         menu.menu.add(0, 0, 0, getString(R.string.menu_overlay_size))
-        menu.menu.add(0, 1, 1, getString(R.string.menu_qs_tile))
-        menu.menu.add(0, 2, 2, getString(R.string.menu_allow_background))
+        menu.menu.add(0, 6, 1, getString(R.string.menu_theme))
+        menu.menu.add(0, 7, 2, getString(R.string.menu_auto_backup))
         menu.menu.add(0, 3, 3, getString(R.string.menu_export))
         menu.menu.add(0, 4, 4, getString(R.string.menu_import))
-        menu.menu.add(0, 5, 5, getString(R.string.menu_about))
+        menu.menu.add(0, 1, 5, getString(R.string.menu_qs_tile))
+        menu.menu.add(0, 2, 6, getString(R.string.menu_allow_background))
+        menu.menu.add(0, 5, 7, getString(R.string.menu_about))
         menu.setOnMenuItemClickListener {
             when (it.itemId) {
                 0 -> showSizeDialog()
@@ -410,6 +470,8 @@ class MainActivity : AppCompatActivity() {
                 3 -> showExportDialog()
                 4 -> importLauncher.launch(arrayOf("*/*"))
                 5 -> showAbout()
+                6 -> showThemeDialog()
+                7 -> showAutoBackupDialog()
             }
             true
         }
@@ -631,6 +693,213 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
     }
+
+    // ---------- Tema ----------
+
+    private fun showThemeDialog() {
+        val names = arrayOf(
+            getString(R.string.theme_system),
+            getString(R.string.theme_light),
+            getString(R.string.theme_dark)
+        )
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.menu_theme))
+            .setSingleChoiceItems(names, Prefs.theme(this)) { d, which ->
+                d.dismiss()
+                if (which != Prefs.theme(this)) {
+                    Prefs.setTheme(this, which)
+                    applyNightMode(this) // activity dibuat ulang otomatis kalau tampilan berubah
+                    refreshOverlay()
+                }
+            }
+            .setNegativeButton(getString(R.string.btn_cancel), null)
+            .show()
+    }
+
+    // ---------- Backup otomatis ----------
+
+    private fun folderLabel(): String {
+        val t = Prefs.autoTree(this) ?: return getString(R.string.auto_no_folder)
+        return try {
+            DocumentsContract.getTreeDocumentId(Uri.parse(t)).substringAfter(':').ifEmpty { "/" }
+        } catch (e: Exception) {
+            t
+        }
+    }
+
+    private fun showAutoBackupDialog() {
+        val mode0 = draftMode ?: Prefs.autoMode(this)
+        val enc0 = draftEncrypt ?: Prefs.autoEncrypt(this)
+        draftMode = null
+        draftEncrypt = null
+
+        var dialogRef: AlertDialog? = null
+
+        // Frekuensi
+        val group = RadioGroup(this)
+        intArrayOf(R.string.auto_off, R.string.auto_daily, R.string.auto_weekly).forEachIndexed { i, res ->
+            val rb = RadioButton(this)
+            rb.id = 1000 + i
+            rb.text = getString(res)
+            rb.textSize = 14f
+            rb.setTextColor(Ui.TEXT)
+            rb.buttonTintList = ColorStateList.valueOf(Ui.ACCENT)
+            group.addView(rb)
+        }
+        group.check(1000 + mode0)
+        fun selectedMode(): Int = (group.checkedRadioButtonId - 1000).coerceIn(0, 2)
+
+        // Enkripsi
+        val cb = CheckBox(this)
+        cb.text = getString(R.string.cb_encrypt)
+        cb.textSize = 14f
+        cb.setTextColor(Ui.TEXT)
+        cb.buttonTintList = ColorStateList.valueOf(Ui.ACCENT)
+        cb.isChecked = enc0
+
+        val hasOldPass = Prefs.autoPass(this) != null
+        val etPass = passwordField(
+            getString(if (hasOldPass) R.string.hint_password_keep else R.string.hint_password)
+        )
+
+        val note = TextView(this)
+        note.textSize = 12f
+        note.setTextColor(Ui.TEXT_DIM)
+        note.setPadding(dp(4), dp(8), 0, 0)
+
+        // Folder tujuan
+        val folderText = TextView(this)
+        folderText.text = folderLabel()
+        folderText.textSize = 13f
+        folderText.setTextColor(Ui.TEXT)
+        folderText.setPadding(dp(4), 0, 0, dp(8))
+        val pick = Ui.pill(this, getString(R.string.btn_choose_folder), Ui.CARD, Ui.TEXT) {
+            draftMode = selectedMode()
+            draftEncrypt = cb.isChecked
+            dialogRef?.dismiss()
+            treeLauncher.launch(null)
+        }
+
+        // Status backup terakhir
+        val status = TextView(this)
+        status.textSize = 12f
+        status.setTextColor(Ui.TEXT_DIM)
+        status.setPadding(dp(4), dp(12), 0, 0)
+        val last = Prefs.autoLastTime(this)
+        val err = Prefs.autoLastError(this)
+        status.text = when {
+            last == 0L -> getString(R.string.auto_last_never)
+            err == null -> getString(R.string.auto_last_ok, formatTime(last))
+            else -> getString(R.string.auto_last_failed, formatTime(last), err)
+        }
+
+        fun sync() {
+            etPass.visibility = if (cb.isChecked) View.VISIBLE else View.GONE
+            note.text = getString(
+                if (cb.isChecked) R.string.auto_note_encrypted else R.string.auto_note_plain,
+                AutoBackup.KEEP
+            )
+        }
+        cb.setOnCheckedChangeListener { _, _ -> sync() }
+        sync()
+
+        val box = LinearLayout(this)
+        box.orientation = LinearLayout.VERTICAL
+        box.setPadding(dp(24), dp(8), dp(24), 0)
+        box.addView(Ui.label(this, getString(R.string.label_auto_frequency)))
+        box.addView(group)
+        box.addView(Ui.label(this, getString(R.string.label_auto_folder)))
+        box.addView(folderText)
+        box.addView(pick, LinearLayout.LayoutParams(Ui.MATCH, dp(44)))
+        box.addView(cb, LinearLayout.LayoutParams(Ui.WRAP, Ui.WRAP).apply { topMargin = dp(16) })
+        box.addView(etPass, LinearLayout.LayoutParams(Ui.MATCH, Ui.WRAP).apply { topMargin = dp(8) })
+        box.addView(note)
+        box.addView(status)
+
+        val scroll = ScrollView(this)
+        scroll.addView(box)
+
+        // Simpan pengaturan. Mengembalikan false kalau ada isian yang belum valid.
+        fun save(): Boolean {
+            val mode = selectedMode()
+            if (mode != 0 && Prefs.autoTree(this) == null) {
+                Toast.makeText(this, getString(R.string.toast_choose_folder_first), Toast.LENGTH_LONG).show()
+                return false
+            }
+            if (cb.isChecked) {
+                val pass = etPass.text.toChars()
+                if (!(pass.isEmpty() && hasOldPass)) {
+                    if (pass.size < Backup.PASSWORD_MIN) {
+                        Toast.makeText(
+                            this, getString(R.string.toast_password_short, Backup.PASSWORD_MIN), Toast.LENGTH_LONG
+                        ).show()
+                        pass.fill('\u0000')
+                        return false
+                    }
+                    try {
+                        Prefs.setAutoPass(this, SecretBox.wrap(pass))
+                    } catch (e: Exception) {
+                        Toast.makeText(this, getString(R.string.toast_keystore_failed), Toast.LENGTH_LONG).show()
+                        return false
+                    } finally {
+                        pass.fill('\u0000')
+                    }
+                }
+            } else {
+                Prefs.setAutoPass(this, null)
+            }
+            Prefs.setAutoMode(this, mode)
+            Prefs.setAutoEncrypt(this, cb.isChecked)
+            AutoBackup.schedule(this)
+            return true
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.menu_auto_backup))
+            .setView(scroll)
+            .setPositiveButton(getString(R.string.btn_save), null)
+            .setNeutralButton(getString(R.string.btn_backup_now), null)
+            .setNegativeButton(getString(R.string.btn_cancel), null)
+            .create()
+        dialogRef = dialog
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                if (save()) {
+                    dialog.dismiss()
+                    Toast.makeText(this, getString(R.string.toast_auto_saved), Toast.LENGTH_SHORT).show()
+                }
+            }
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+                if (Prefs.autoTree(this) == null) {
+                    Toast.makeText(this, getString(R.string.toast_choose_folder_first), Toast.LENGTH_LONG).show()
+                } else if (save()) {
+                    dialog.dismiss()
+                    runBackupNow()
+                }
+            }
+        }
+        dialog.show()
+    }
+
+    private fun runBackupNow() {
+        Toast.makeText(this, getString(R.string.toast_backup_running), Toast.LENGTH_SHORT).show()
+        val app = applicationContext
+        Thread {
+            val error = AutoBackup.run(app)
+            runOnUiThread {
+                Toast.makeText(
+                    this,
+                    if (error == null) getString(R.string.toast_backup_ok)
+                    else getString(R.string.toast_backup_failed, error),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }.start()
+    }
+
+    private fun formatTime(millis: Long): String =
+        java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT)
+            .format(java.util.Date(millis))
 
     // ---------- Tentang ----------
 

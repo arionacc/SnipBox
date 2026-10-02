@@ -61,6 +61,41 @@ object Prefs {
             .apply()
     }
 
+    // ---- Tema: 0 = ikuti sistem, 1 = terang, 2 = gelap ----
+    fun theme(ctx: Context): Int = sp(ctx).getInt("theme", 0).coerceIn(0, 2)
+    fun setTheme(ctx: Context, mode: Int) {
+        sp(ctx).edit().putInt("theme", mode.coerceIn(0, 2)).apply()
+    }
+
+    // ---- Backup otomatis ----
+    /** 0 = mati, 1 = harian, 2 = mingguan */
+    fun autoMode(ctx: Context): Int = sp(ctx).getInt("auto_mode", 0).coerceIn(0, 2)
+    fun setAutoMode(ctx: Context, mode: Int) {
+        sp(ctx).edit().putInt("auto_mode", mode.coerceIn(0, 2)).apply()
+    }
+
+    fun autoTree(ctx: Context): String? = sp(ctx).getString("auto_tree", null)
+    fun setAutoTree(ctx: Context, uri: String?) {
+        sp(ctx).edit().putString("auto_tree", uri).apply()
+    }
+
+    fun autoEncrypt(ctx: Context): Boolean = sp(ctx).getBoolean("auto_encrypt", false)
+    fun setAutoEncrypt(ctx: Context, on: Boolean) {
+        sp(ctx).edit().putBoolean("auto_encrypt", on).apply()
+    }
+
+    /** Kata sandi backup otomatis, sudah dibungkus kunci Android Keystore (bukan teks asli). */
+    fun autoPass(ctx: Context): String? = sp(ctx).getString("auto_pass", null)
+    fun setAutoPass(ctx: Context, wrapped: String?) {
+        sp(ctx).edit().putString("auto_pass", wrapped).apply()
+    }
+
+    fun autoLastTime(ctx: Context): Long = sp(ctx).getLong("auto_last_time", 0L)
+    fun autoLastError(ctx: Context): String? = sp(ctx).getString("auto_last_error", null)
+    fun setAutoResult(ctx: Context, time: Long, error: String?) {
+        sp(ctx).edit().putLong("auto_last_time", time).putString("auto_last_error", error).apply()
+    }
+
     fun resetPositions(ctx: Context) {
         sp(ctx).edit()
             .remove("bubble_xf").remove("bubble_yf2")

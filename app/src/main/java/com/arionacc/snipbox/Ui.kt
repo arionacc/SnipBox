@@ -26,14 +26,38 @@ object Ui {
     const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
     const val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
 
-    val BG = 0xFF0E0E0E.toInt()
-    val SURFACE = 0xFF161616.toInt()
-    val CARD = 0xFF1E1E1E.toInt()
-    val FIELD = 0xFF262626.toInt()
-    val STROKE = 0xFF333333.toInt()
-    val ACCENT = 0xFFE8E8E8.toInt()
-    val TEXT = 0xFFEDEDED.toInt()
-    val TEXT_DIM = 0xFF8A8A8A.toInt()
+    // Palet warna. Diisi ulang oleh applyTheme() sesuai pilihan tema (gelap / terang).
+    var BG = 0xFF0E0E0E.toInt()
+    var SURFACE = 0xFF161616.toInt()
+    var CARD = 0xFF1E1E1E.toInt()
+    var FIELD = 0xFF262626.toInt()
+    var STROKE = 0xFF333333.toInt()
+    var ACCENT = 0xFFE8E8E8.toInt()
+    var TEXT = 0xFFEDEDED.toInt()
+    var TEXT_DIM = 0xFF8A8A8A.toInt()
+    var RIPPLE = 0x33FFFFFF
+
+    /** Apakah tema yang berlaku sekarang gelap? (pilihan pengguna, atau mengikuti sistem) */
+    fun isDark(ctx: Context): Boolean = when (Prefs.theme(ctx)) {
+        1 -> false
+        2 -> true
+        else -> (ctx.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+    }
+
+    /** Panggil sebelum membangun tampilan apa pun (activity, overlay, dialog). */
+    fun applyTheme(ctx: Context) {
+        if (isDark(ctx)) {
+            BG = 0xFF0E0E0E.toInt(); SURFACE = 0xFF161616.toInt(); CARD = 0xFF1E1E1E.toInt()
+            FIELD = 0xFF262626.toInt(); STROKE = 0xFF333333.toInt(); ACCENT = 0xFFE8E8E8.toInt()
+            TEXT = 0xFFEDEDED.toInt(); TEXT_DIM = 0xFF8A8A8A.toInt(); RIPPLE = 0x33FFFFFF
+        } else {
+            BG = 0xFFF4F4F4.toInt(); SURFACE = 0xFFFFFFFF.toInt(); CARD = 0xFFFFFFFF.toInt()
+            FIELD = 0xFFEDEDED.toInt(); STROKE = 0xFFD9D9D9.toInt(); ACCENT = 0xFF161616.toInt()
+            TEXT = 0xFF141414.toInt(); TEXT_DIM = 0xFF6E6E6E.toInt(); RIPPLE = 0x22000000
+        }
+    }
 
     fun roundRect(
         color: Int,
@@ -53,7 +77,7 @@ object Ui {
         strokeColor: Int = 0,
         strokeWidth: Int = 0
     ): RippleDrawable = RippleDrawable(
-        ColorStateList.valueOf(0x33FFFFFF),
+        ColorStateList.valueOf(RIPPLE),
         roundRect(color, radius, strokeColor, strokeWidth),
         roundRect(Color.BLACK, radius)
     )
@@ -198,6 +222,7 @@ class SnippetAdapter(
     private class Holder(
         val chip: TextView,
         val title: TextView,
+        val star: TextView,
         val preview: TextView
     )
 
@@ -229,6 +254,13 @@ class SnippetAdapter(
             top.addView(chip)
             top.addView(title)
 
+            val star = TextView(ctx)
+            star.text = "\u2605"
+            star.textSize = 15f
+            star.setTextColor(Ui.TEXT)
+            star.setPadding(ctx.dp(8), 0, 0, 0)
+            top.addView(star)
+
             val preview = TextView(ctx)
             preview.textSize = 12f
             preview.typeface = Typeface.MONOSPACE
@@ -251,7 +283,7 @@ class SnippetAdapter(
             frame.setPadding(0, ctx.dp(4), 0, ctx.dp(4))
             frame.addView(card, FrameLayout.LayoutParams(Ui.MATCH, Ui.WRAP))
 
-            holder = Holder(chip, title, preview)
+            holder = Holder(chip, title, star, preview)
             frame.tag = holder
             root = frame
         } else {
@@ -263,6 +295,7 @@ class SnippetAdapter(
         holder.chip.text = s.type
         Ui.styleChip(ctx, holder.chip, false)
         holder.title.text = s.title
+        holder.star.visibility = if (s.pinned) View.VISIBLE else View.GONE
         val body = if (s.sensitive) "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" else s.content.trim()
         holder.preview.text = body
         holder.preview.visibility = if (body.isEmpty()) View.GONE else View.VISIBLE

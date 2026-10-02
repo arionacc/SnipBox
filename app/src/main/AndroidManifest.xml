@@ -25,6 +25,13 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".FillActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SnipBox.Translucent" />
+
         <service
             android:name=".OverlayService"
             android:exported="false"

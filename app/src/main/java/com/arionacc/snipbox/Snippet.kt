@@ -17,12 +17,16 @@ data class Snippet(
     var title: String,
     var content: String,
     var type: String,
-    var sensitive: Boolean = false
+    var sensitive: Boolean = false,
+    var pinned: Boolean = false
 )
 
+/** Snippet yang disematkan tampil paling atas; urutan lainnya tidak berubah. */
+fun List<Snippet>.pinnedFirst(): List<Snippet> = sortedByDescending { it.pinned }
+
 /** Isi yang disalin ke clipboard. Snippet sensitif ditandai supaya Android 13+ menyembunyikan pratinjaunya. */
-fun Snippet.toClip(): ClipData {
-    val clip = ClipData.newPlainText("snippet", content)
+fun Snippet.toClip(text: String = content): ClipData {
+    val clip = ClipData.newPlainText("snippet", text)
     if (sensitive && Build.VERSION.SDK_INT >= 33) {
         clip.description.extras = PersistableBundle().apply {
             putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
@@ -50,7 +54,8 @@ object SnippetStore {
                         title = o.optString("title", ""),
                         content = o.optString("content", ""),
                         type = o.optString("type", "Code"),
-                        sensitive = o.optBoolean("sensitive", false)
+                        sensitive = o.optBoolean("sensitive", false),
+                        pinned = o.optBoolean("pinned", false)
                     )
                 )
             }
@@ -70,6 +75,7 @@ object SnippetStore {
                     .put("content", s.content)
                     .put("type", s.type)
                     .put("sensitive", s.sensitive)
+                    .put("pinned", s.pinned)
             )
         }
         ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE)

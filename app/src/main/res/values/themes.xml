@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.SnipBox" parent="Theme.MaterialComponents.NoActionBar">
+    <style name="Theme.SnipBox" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/accent</item>
         <item name="colorOnPrimary">@color/bg</item>
         <item name="colorSecondary">@color/accent</item>
@@ -10,5 +10,15 @@
         <item name="android:windowBackground">@color/bg</item>
         <item name="android:statusBarColor">@color/bg</item>
         <item name="android:navigationBarColor">@color/bg</item>
+    </style>
+
+    <!-- Dipakai FillActivity: dialog isian variabel yang muncul di atas aplikasi lain -->
+    <style name="Theme.SnipBox.Translucent" parent="Theme.SnipBox">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 </resources>

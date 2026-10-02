@@ -107,4 +107,37 @@
     <string name="dlg_password_needed">Encrypted backup</string>
     <string name="dlg_password_wrong">Wrong password, try again</string>
     <string name="dlg_password_message">Enter the password used when this backup was exported.</string>
+
+    <!-- Pin, variables, theme, auto backup -->
+    <string name="menu_pin">Pin to top</string>
+    <string name="menu_unpin">Unpin</string>
+    <string name="btn_copy_as_is">Copy as is</string>
+    <string name="hint_variables">Tip: use {{name}} for a fill-in field, or {{name|default}} for a default value. You fill them in when you copy.</string>
+    <string name="menu_theme">Theme</string>
+    <string name="theme_system">Follow system</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="menu_auto_backup">Automatic backup</string>
+    <string name="label_auto_frequency">FREQUENCY</string>
+    <string name="label_auto_folder">BACKUP FOLDER</string>
+    <string name="auto_off">Off</string>
+    <string name="auto_daily">Daily</string>
+    <string name="auto_weekly">Weekly</string>
+    <string name="auto_no_folder">No folder selected</string>
+    <string name="btn_choose_folder">Choose folder</string>
+    <string name="btn_backup_now">Back up now</string>
+    <string name="hint_password_keep">Password (leave empty to keep the current one)</string>
+    <string name="auto_note_encrypted">Files are encrypted. The password is stored on this device, protected by Android Keystore. Only the %1$d newest automatic backups are kept.</string>
+    <string name="auto_note_plain">Files are plain text, so sensitive snippets are NOT included. Turn on encryption to back them up too. Only the %1$d newest automatic backups are kept.</string>
+    <string name="auto_last_never">No automatic backup yet.</string>
+    <string name="auto_last_ok">Last backup: %1$s</string>
+    <string name="auto_last_failed">Last attempt failed (%1$s): %2$s</string>
+    <string name="toast_choose_folder_first">Choose a backup folder first</string>
+    <string name="toast_folder_failed">Could not use that folder</string>
+    <string name="toast_keystore_failed">Could not store the password securely on this device</string>
+    <string name="toast_auto_saved">Automatic backup settings saved</string>
+    <string name="toast_backup_running">Backing up...</string>
+    <string name="toast_backup_ok">Backup finished</string>
+    <string name="toast_backup_failed">Backup failed: %1$s</string>
+    <string name="toast_fill_failed">Could not open the fill-in dialog</string>
 </resources>

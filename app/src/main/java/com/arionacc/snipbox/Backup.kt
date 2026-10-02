@@ -70,6 +70,7 @@ object Backup {
                     .put("content", s.content)
                     .put("type", s.type)
                     .put("sensitive", s.sensitive)
+                    .put("pinned", s.pinned)
             )
         }
 
@@ -141,6 +142,7 @@ object Backup {
                 ?: rawType.also { catList.add(it) }
 
             val sensitive = o.optBoolean("sensitive", false)
+            val pinned = o.optBoolean("pinned", false)
 
             val duplicate = current.any {
                 it.title == title && it.content == content && it.type.equals(type, true)
@@ -159,7 +161,7 @@ object Backup {
             }
             usedIds.add(id)
 
-            current.add(Snippet(id, title, content, type, sensitive))
+            current.add(Snippet(id, title, content, type, sensitive, pinned))
             added++
         }
 

@@ -195,6 +195,7 @@ class OverlayService : Service() {
 
     private fun showBubble() {
         if (bubble != null) return
+        Ui.applyTheme(this)
         val u = usable()
         val size = dp(Prefs.bubbleSize(this))
 
@@ -296,6 +297,7 @@ class OverlayService : Service() {
     // ---------- Panel snippet ----------
 
     private fun showPanel() {
+        Ui.applyTheme(this)
         val (sw, sh) = screen()
         val all = SnippetStore.load(this)
         val cats = Categories.all(this, all)
@@ -339,7 +341,7 @@ class OverlayService : Service() {
                 (category == null || s.type.equals(category, true)) &&
                     (q.isEmpty() || s.title.lowercase().contains(q) ||
                         (!s.sensitive && s.content.lowercase().contains(q)))
-            }
+            }.pinnedFirst()
             emptyTv.text = when {
                 all.isEmpty() -> getString(R.string.overlay_empty_none)
                 q.isNotEmpty() -> getString(R.string.overlay_no_results, q)
@@ -405,10 +407,26 @@ class OverlayService : Service() {
         lv.emptyView = emptyTv
         lv.setOnItemClickListener { _, v, pos, _ ->
             val s = shown[pos]
-            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            cm.setPrimaryClip(s.toClip())
-            Ui.feedback(v)
-            flash(s.title)
+            if (Template.variables(s.content).isNotEmpty()) {
+                // Ada variabel {{...}}: tampilkan dialog isian di atas aplikasi lain
+                try {
+                    startActivity(
+                        Intent(this, FillActivity::class.java)
+                            .putExtra(FillActivity.EXTRA_ID, s.id)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                    )
+                    handler.post { closePanel() }
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(
+                        this, getString(R.string.toast_fill_failed), android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+            } else {
+                val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(s.toClip())
+                Ui.feedback(v)
+                flash(s.title)
+            }
         }
 
         val listHolder = FrameLayout(this)

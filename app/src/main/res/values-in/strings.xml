@@ -107,4 +107,37 @@
     <string name="dlg_password_needed">Backup terenkripsi</string>
     <string name="dlg_password_wrong">Kata sandi salah, coba lagi</string>
     <string name="dlg_password_message">Masukkan kata sandi yang dipakai saat backup ini diexport.</string>
+
+    <!-- Pin, variabel, tema, backup otomatis -->
+    <string name="menu_pin">Sematkan di atas</string>
+    <string name="menu_unpin">Lepas sematan</string>
+    <string name="btn_copy_as_is">Salin apa adanya</string>
+    <string name="hint_variables">Tips: pakai {{nama}} untuk kolom isian, atau {{nama|bawaan}} untuk nilai bawaan. Diisi saat snippet disalin.</string>
+    <string name="menu_theme">Tema</string>
+    <string name="theme_system">Ikuti sistem</string>
+    <string name="theme_light">Terang</string>
+    <string name="theme_dark">Gelap</string>
+    <string name="menu_auto_backup">Backup otomatis</string>
+    <string name="label_auto_frequency">FREKUENSI</string>
+    <string name="label_auto_folder">FOLDER BACKUP</string>
+    <string name="auto_off">Mati</string>
+    <string name="auto_daily">Harian</string>
+    <string name="auto_weekly">Mingguan</string>
+    <string name="auto_no_folder">Belum ada folder dipilih</string>
+    <string name="btn_choose_folder">Pilih folder</string>
+    <string name="btn_backup_now">Backup sekarang</string>
+    <string name="hint_password_keep">Kata sandi (kosongkan untuk tetap memakai yang lama)</string>
+    <string name="auto_note_encrypted">File dienkripsi. Kata sandi disimpan di perangkat ini, dilindungi Android Keystore. Hanya %1$d backup otomatis terbaru yang disimpan.</string>
+    <string name="auto_note_plain">File berupa teks biasa, jadi snippet sensitif TIDAK ikut dicadangkan. Aktifkan enkripsi agar ikut tercadang. Hanya %1$d backup otomatis terbaru yang disimpan.</string>
+    <string name="auto_last_never">Belum ada backup otomatis.</string>
+    <string name="auto_last_ok">Backup terakhir: %1$s</string>
+    <string name="auto_last_failed">Percobaan terakhir gagal (%1$s): %2$s</string>
+    <string name="toast_choose_folder_first">Pilih folder backup dulu</string>
+    <string name="toast_folder_failed">Folder itu tidak bisa dipakai</string>
+    <string name="toast_keystore_failed">Kata sandi tidak bisa disimpan dengan aman di perangkat ini</string>
+    <string name="toast_auto_saved">Pengaturan backup otomatis disimpan</string>
+    <string name="toast_backup_running">Sedang backup...</string>
+    <string name="toast_backup_ok">Backup selesai</string>
+    <string name="toast_backup_failed">Backup gagal: %1$s</string>
+    <string name="toast_fill_failed">Dialog isian tidak bisa dibuka</string>
 </resources>
