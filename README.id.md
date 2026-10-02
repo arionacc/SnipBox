@@ -8,7 +8,7 @@
 
 Aplikasi Android untuk menyimpan **code, function, dan command favorit** dan menyalinnya dengan satu ketukan, dari mana saja, lewat ikon melayang yang muncul di atas aplikasi lain.
 
-Semua data tersimpan lokal di perangkat. Aplikasi ini tidak meminta izin internet. **Jangan simpan data penting maupun kredensial di aplikasi ini.**
+Semua data tersimpan lokal di perangkat. Aplikasi ini tidak meminta izin internet.
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Android](https://img.shields.io/badge/Android-8.0_atau_Terbaru-3DDC84?logo=android&logoColor=white)
