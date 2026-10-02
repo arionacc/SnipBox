@@ -40,6 +40,7 @@ class OverlayService : Service() {
         const val ACTION_TOGGLE = "snipbox.TOGGLE"
         const val ACTION_STOP = "snipbox.STOP"
         const val ACTION_REFRESH = "snipbox.REFRESH"
+        const val ACTION_REPOST = "snipbox.REPOST"
         private const val CHANNEL_ID = "snipbox_overlay_v2"
         private const val OLD_CHANNEL_ID = "snipbox_channel"
         private const val NOTIF_ID = 1
@@ -149,6 +150,7 @@ class OverlayService : Service() {
         when (intent?.action) {
             ACTION_TOGGLE -> if (panel == null) openPanel() else closePanel()
             ACTION_REFRESH -> rebuild()
+            ACTION_REPOST -> {} // startForeground di atas sudah menampilkan ulang notifikasi
             ACTION_STOP -> {
                 removePanel()
                 removeBubble()
@@ -336,7 +338,7 @@ class OverlayService : Service() {
             shown = all.filter { s ->
                 (category == null || s.type.equals(category, true)) &&
                     (q.isEmpty() || s.title.lowercase().contains(q) ||
-                        s.content.lowercase().contains(q))
+                        (!s.sensitive && s.content.lowercase().contains(q)))
             }
             emptyTv.text = when {
                 all.isEmpty() -> getString(R.string.overlay_empty_none)
@@ -404,7 +406,7 @@ class OverlayService : Service() {
         lv.setOnItemClickListener { _, v, pos, _ ->
             val s = shown[pos]
             val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            cm.setPrimaryClip(ClipData.newPlainText("snippet", s.content))
+            cm.setPrimaryClip(s.toClip())
             Ui.feedback(v)
             flash(s.title)
         }

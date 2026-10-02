@@ -1,16 +1,35 @@
 package com.arionacc.snipbox
 
+import android.content.ClipData
+import android.content.ClipDescription
 import android.content.Context
+import android.os.Build
+import android.os.PersistableBundle
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Satu snippet. Nama kategori disimpan di field `type`. */
+/**
+ * Satu snippet. Nama kategori disimpan di field `type`.
+ * `sensitive` = isi disamarkan di daftar dan overlay (cocok untuk password / API key).
+ */
 data class Snippet(
     val id: Long,
     var title: String,
     var content: String,
-    var type: String
+    var type: String,
+    var sensitive: Boolean = false
 )
+
+/** Isi yang disalin ke clipboard. Snippet sensitif ditandai supaya Android 13+ menyembunyikan pratinjaunya. */
+fun Snippet.toClip(): ClipData {
+    val clip = ClipData.newPlainText("snippet", content)
+    if (sensitive && Build.VERSION.SDK_INT >= 33) {
+        clip.description.extras = PersistableBundle().apply {
+            putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+        }
+    }
+    return clip
+}
 
 /** Penyimpanan snippet secara lokal (JSON di SharedPreferences). */
 object SnippetStore {
@@ -30,7 +49,8 @@ object SnippetStore {
                         id = o.optLong("id", System.currentTimeMillis() + i),
                         title = o.optString("title", ""),
                         content = o.optString("content", ""),
-                        type = o.optString("type", "Code")
+                        type = o.optString("type", "Code"),
+                        sensitive = o.optBoolean("sensitive", false)
                     )
                 )
             }
@@ -49,6 +69,7 @@ object SnippetStore {
                     .put("title", s.title)
                     .put("content", s.content)
                     .put("type", s.type)
+                    .put("sensitive", s.sensitive)
             )
         }
         ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE)

@@ -82,4 +82,29 @@
     <string name="about_license">MIT License. Hak cipta (c) 2026 Arion. Bebas dipakai, disalin, diubah, dan disebarkan selama pemberitahuan hak cipta dan lisensi tetap disertakan.</string>
     <string name="about_source_label">KODE SUMBER</string>
     <string name="about_source">https://github.com/arionacc/SnipBox</string>
+
+    <!-- Izin notifikasi -->
+    <string name="dlg_notif_off_title">Notifikasi dimatikan</string>
+    <string name="dlg_notif_off_message">Ikon melayang tetap berfungsi, tetapi notifikasi SnipBox (dengan tombol Buka Overlay dan Matikan) tidak akan muncul sampai kamu mengizinkan notifikasi untuk aplikasi ini.</string>
+    <string name="btn_open_settings">Buka pengaturan</string>
+    <string name="btn_later">Nanti</string>
+
+    <!-- Snippet sensitif dan export terenkripsi -->
+    <string name="cb_sensitive">Snippet sensitif</string>
+    <string name="cb_sensitive_hint">Isi disamarkan di daftar dan overlay, dan tidak ikut pencarian isi. Cocok untuk password dan API key.</string>
+    <string name="cb_encrypt">Enkripsi dengan kata sandi</string>
+    <string name="hint_password">Kata sandi</string>
+    <string name="hint_password_confirm">Ulangi kata sandi</string>
+    <string name="export_note_encrypted">File dienkripsi (AES-256). Kalau lupa kata sandi, backup tidak bisa dibuka dan tidak ada cara memulihkannya.</string>
+    <string name="export_note_plain">Peringatan: file berupa teks biasa, jadi siapa pun yang memegangnya bisa membaca semua snippet, termasuk yang sensitif.</string>
+    <string name="btn_continue">Lanjut</string>
+    <string name="btn_open">Buka</string>
+    <string name="toast_password_short">Kata sandi minimal %1$d karakter</string>
+    <string name="toast_password_mismatch">Kata sandi tidak sama</string>
+    <string name="toast_encrypting">Mengenkripsi...</string>
+    <string name="toast_decrypting">Membuka file...</string>
+    <string name="toast_export_ok_encrypted">%1$d snippet berhasil diexport (terenkripsi)</string>
+    <string name="dlg_password_needed">Backup terenkripsi</string>
+    <string name="dlg_password_wrong">Kata sandi salah, coba lagi</string>
+    <string name="dlg_password_message">Masukkan kata sandi yang dipakai saat backup ini diexport.</string>
 </resources>

@@ -82,4 +82,29 @@
     <string name="about_license">MIT License. Copyright (c) 2026 Arion. Free to use, copy, modify, and distribute as long as the copyright and license notice are kept.</string>
     <string name="about_source_label">SOURCE CODE</string>
     <string name="about_source">https://github.com/arionacc/SnipBox</string>
+
+    <!-- Notification permission -->
+    <string name="dlg_notif_off_title">Notifications are off</string>
+    <string name="dlg_notif_off_message">The floating bubble still works, but the SnipBox notification (with the Open overlay and Disable buttons) will not appear until you allow notifications for this app.</string>
+    <string name="btn_open_settings">Open settings</string>
+    <string name="btn_later">Later</string>
+
+    <!-- Sensitive snippets and encrypted export -->
+    <string name="cb_sensitive">Sensitive snippet</string>
+    <string name="cb_sensitive_hint">Content is hidden in the list and overlay, and is not searchable by content. Good for passwords and API keys.</string>
+    <string name="cb_encrypt">Encrypt with a password</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_password_confirm">Repeat password</string>
+    <string name="export_note_encrypted">The file is encrypted (AES-256). If you forget the password, the backup cannot be opened. There is no way to recover it.</string>
+    <string name="export_note_plain">Warning: the file is plain text, so anyone who gets it can read all snippets, including sensitive ones.</string>
+    <string name="btn_continue">Continue</string>
+    <string name="btn_open">Open</string>
+    <string name="toast_password_short">Password must be at least %1$d characters</string>
+    <string name="toast_password_mismatch">Passwords do not match</string>
+    <string name="toast_encrypting">Encrypting...</string>
+    <string name="toast_decrypting">Opening file...</string>
+    <string name="toast_export_ok_encrypted">Exported %1$d snippets (encrypted)</string>
+    <string name="dlg_password_needed">Encrypted backup</string>
+    <string name="dlg_password_wrong">Wrong password, try again</string>
+    <string name="dlg_password_message">Enter the password used when this backup was exported.</string>
 </resources>

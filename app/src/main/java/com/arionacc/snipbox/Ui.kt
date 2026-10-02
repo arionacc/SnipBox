@@ -263,7 +263,7 @@ class SnippetAdapter(
         holder.chip.text = s.type
         Ui.styleChip(ctx, holder.chip, false)
         holder.title.text = s.title
-        val body = s.content.trim()
+        val body = if (s.sensitive) "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" else s.content.trim()
         holder.preview.text = body
         holder.preview.visibility = if (body.isEmpty()) View.GONE else View.VISIBLE
         return root

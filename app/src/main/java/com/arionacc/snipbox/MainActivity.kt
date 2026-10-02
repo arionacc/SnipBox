@@ -13,10 +13,13 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.text.InputType
 import android.provider.Settings
 import android.text.util.Linkify
 import android.view.Gravity
 import android.view.View
+import android.widget.CheckBox
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ListView
@@ -27,7 +30,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
@@ -40,11 +43,29 @@ class MainActivity : AppCompatActivity() {
     private lateinit var catBar: CategoryBar
     private lateinit var empty: TextView
 
+    // Izin notifikasi (Android 13+). Layanan overlay dijalankan setelah pengguna memilih.
+    private val notifPermLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        launchOverlayService()
+        if (!granted) showNotificationsOffDialog()
+    }
+
     // Pemilih file bawaan Android (Storage Access Framework): bisa dari folder mana pun,
     // tanpa izin penyimpanan tambahan.
+    // Kata sandi export disimpan sementara sampai pengguna memilih lokasi file.
+    private var pendingExportPassword: CharArray? = null
+
     private val exportLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
-    ) { uri -> if (uri != null) doExport(uri) }
+    ) { uri ->
+        if (uri != null) {
+            doExport(uri)
+        } else {
+            pendingExportPassword?.fill('\u0000')
+            pendingExportPassword = null
+        }
+    }
 
     private val importLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -119,7 +140,7 @@ class MainActivity : AppCompatActivity() {
         lv.setPadding(0, dp(12), 0, dp(96))
         lv.setOnItemClickListener { _, v, pos, _ ->
             Ui.feedback(v)
-            copy(shown[pos].content)
+            copySnippet(shown[pos])
         }
         lv.setOnItemLongClickListener { _, _, pos, _ ->
             val target = shown[pos]
@@ -202,6 +223,12 @@ class MainActivity : AppCompatActivity() {
         SnippetStore.save(this, snippets)
         refresh()
         refreshOverlay()
+    }
+
+    private fun copySnippet(snippet: Snippet) {
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        cm.setPrimaryClip(snippet.toClip())
+        Toast.makeText(this, getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
     }
 
     private fun copy(text: String) {
@@ -295,6 +322,18 @@ class MainActivity : AppCompatActivity() {
         val etContent = Ui.field(this, getString(R.string.hint_content), true)
         etContent.setText(existing?.content ?: "")
 
+        val cbSensitive = CheckBox(this)
+        cbSensitive.text = getString(R.string.cb_sensitive)
+        cbSensitive.textSize = 14f
+        cbSensitive.setTextColor(Ui.TEXT)
+        cbSensitive.buttonTintList = ColorStateList.valueOf(Ui.ACCENT)
+        cbSensitive.isChecked = existing?.sensitive ?: false
+        val sensitiveHint = TextView(this)
+        sensitiveHint.text = getString(R.string.cb_sensitive_hint)
+        sensitiveHint.textSize = 12f
+        sensitiveHint.setTextColor(Ui.TEXT_DIM)
+        sensitiveHint.setPadding(dp(4), 0, 0, 0)
+
         val bar = CategoryBar(this)
         fun renderBar() {
             bar.set(
@@ -323,6 +362,8 @@ class MainActivity : AppCompatActivity() {
         box.addView(bar.view)
         box.addView(Ui.label(this, getString(R.string.label_content)))
         box.addView(etContent)
+        box.addView(cbSensitive, LinearLayout.LayoutParams(Ui.WRAP, Ui.WRAP).apply { topMargin = dp(12) })
+        box.addView(sensitiveHint)
 
         val scroll = ScrollView(this)
         scroll.addView(box)
@@ -334,11 +375,12 @@ class MainActivity : AppCompatActivity() {
                 val t = etTitle.text.toString().ifBlank { getString(R.string.untitled) }
                 val c = etContent.text.toString()
                 if (existing == null) {
-                    snippets.add(0, Snippet(System.currentTimeMillis(), t, c, selected))
+                    snippets.add(0, Snippet(System.currentTimeMillis(), t, c, selected, cbSensitive.isChecked))
                 } else {
                     existing.title = t
                     existing.content = c
                     existing.type = selected
+                    existing.sensitive = cbSensitive.isChecked
                 }
                 persist()
             }
@@ -365,7 +407,7 @@ class MainActivity : AppCompatActivity() {
                     .setPositiveButton(getString(R.string.btn_got_it), null)
                     .show()
                 2 -> requestBatteryExemption()
-                3 -> exportLauncher.launch(Backup.fileName())
+                3 -> showExportDialog()
                 4 -> importLauncher.launch(arrayOf("*/*"))
                 5 -> showAbout()
             }
@@ -376,27 +418,205 @@ class MainActivity : AppCompatActivity() {
 
     // ---------- Export / Import ----------
 
-    private fun doExport(uri: Uri) {
-        try {
-            val json = Backup.export(this, snippets)
-            contentResolver.openOutputStream(uri, "wt")?.use { out ->
-                out.write(json.toByteArray(Charsets.UTF_8))
-            } ?: throw java.io.IOException("Cannot open file")
-            Toast.makeText(
-                this, getString(R.string.toast_export_ok, snippets.size), Toast.LENGTH_LONG
-            ).show()
-        } catch (e: Exception) {
-            Toast.makeText(
-                this, getString(R.string.toast_export_failed, e.message ?: ""), Toast.LENGTH_LONG
-            ).show()
+    private fun passwordField(hint: String): EditText {
+        val et = Ui.field(this, hint, false)
+        et.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        return et
+    }
+
+    private fun CharSequence.toChars(): CharArray = CharArray(length) { this[it] }
+
+    /** Dialog pilihan export: biasa atau terenkripsi dengan kata sandi. */
+    private fun showExportDialog() {
+        val cb = CheckBox(this)
+        cb.text = getString(R.string.cb_encrypt)
+        cb.textSize = 14f
+        cb.setTextColor(Ui.TEXT)
+        cb.buttonTintList = ColorStateList.valueOf(Ui.ACCENT)
+        cb.isChecked = snippets.any { it.sensitive }
+
+        val etPass = passwordField(getString(R.string.hint_password))
+        val etPass2 = passwordField(getString(R.string.hint_password_confirm))
+
+        val note = TextView(this)
+        note.textSize = 12f
+        note.setTextColor(Ui.TEXT_DIM)
+        note.setPadding(dp(4), dp(8), 0, 0)
+
+        val passBox = LinearLayout(this)
+        passBox.orientation = LinearLayout.VERTICAL
+        passBox.addView(etPass, LinearLayout.LayoutParams(Ui.MATCH, Ui.WRAP).apply { topMargin = dp(8) })
+        passBox.addView(etPass2, LinearLayout.LayoutParams(Ui.MATCH, Ui.WRAP).apply { topMargin = dp(8) })
+
+        fun sync() {
+            passBox.visibility = if (cb.isChecked) View.VISIBLE else View.GONE
+            note.text = getString(
+                if (cb.isChecked) R.string.export_note_encrypted else R.string.export_note_plain
+            )
         }
+        cb.setOnCheckedChangeListener { _, _ -> sync() }
+        sync()
+
+        val box = LinearLayout(this)
+        box.orientation = LinearLayout.VERTICAL
+        box.setPadding(dp(24), dp(8), dp(24), 0)
+        box.addView(cb)
+        box.addView(passBox)
+        box.addView(note)
+
+        val scroll = ScrollView(this)
+        scroll.addView(box)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.menu_export))
+            .setView(scroll)
+            .setPositiveButton(getString(R.string.btn_continue), null)
+            .setNegativeButton(getString(R.string.btn_cancel), null)
+            .create()
+        dialog.setOnShowListener {
+            // Listener manual supaya dialog tidak tertutup saat input belum valid
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                if (!cb.isChecked) {
+                    pendingExportPassword = null
+                    dialog.dismiss()
+                    exportLauncher.launch(Backup.fileName(false))
+                    return@setOnClickListener
+                }
+                val p1 = etPass.text.toChars()
+                val p2 = etPass2.text.toChars()
+                val ok = p1.contentEquals(p2)
+                when {
+                    p1.size < Backup.PASSWORD_MIN -> {
+                        Toast.makeText(
+                            this, getString(R.string.toast_password_short, Backup.PASSWORD_MIN), Toast.LENGTH_LONG
+                        ).show()
+                        p1.fill('\u0000'); p2.fill('\u0000')
+                    }
+                    !ok -> {
+                        Toast.makeText(this, getString(R.string.toast_password_mismatch), Toast.LENGTH_LONG).show()
+                        p1.fill('\u0000'); p2.fill('\u0000')
+                    }
+                    else -> {
+                        p2.fill('\u0000')
+                        pendingExportPassword = p1
+                        dialog.dismiss()
+                        exportLauncher.launch(Backup.fileName(true))
+                    }
+                }
+            }
+        }
+        dialog.show()
+    }
+
+    private fun doExport(uri: Uri) {
+        val password = pendingExportPassword
+        pendingExportPassword = null
+        val count = snippets.size
+        val plain = Backup.export(this, snippets)
+
+        fun write(text: String) {
+            contentResolver.openOutputStream(uri, "wt")?.use { out ->
+                out.write(text.toByteArray(Charsets.UTF_8))
+            } ?: throw java.io.IOException("Cannot open file")
+        }
+
+        if (password == null) {
+            try {
+                write(plain)
+                Toast.makeText(this, getString(R.string.toast_export_ok, count), Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this, getString(R.string.toast_export_failed, e.message ?: ""), Toast.LENGTH_LONG
+                ).show()
+            }
+            return
+        }
+
+        // Derivasi kunci butuh beberapa ratus milidetik, jadi dijalankan di luar thread utama.
+        Toast.makeText(this, getString(R.string.toast_encrypting), Toast.LENGTH_SHORT).show()
+        Thread {
+            val result = try {
+                write(Backup.encrypt(plain, password))
+                null
+            } catch (e: Exception) {
+                e.message ?: ""
+            } finally {
+                password.fill('\u0000')
+            }
+            runOnUiThread {
+                if (result == null) {
+                    Toast.makeText(
+                        this, getString(R.string.toast_export_ok_encrypted, count), Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this, getString(R.string.toast_export_failed, result), Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }.start()
     }
 
     private fun doImport(uri: Uri) {
-        try {
-            val raw = contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+        val raw = try {
+            contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
                 ?: throw java.io.IOException("Cannot open file")
-            val result = Backup.import(this, raw, snippets)
+        } catch (e: Exception) {
+            Toast.makeText(
+                this, getString(R.string.toast_import_failed, e.message ?: ""), Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+        if (Backup.isEncrypted(raw)) {
+            askPasswordThenImport(raw, false)
+        } else {
+            finishImport(raw)
+        }
+    }
+
+    private fun askPasswordThenImport(raw: String, retry: Boolean) {
+        val et = passwordField(getString(R.string.hint_password))
+        val box = FrameLayout(this)
+        box.setPadding(dp(20), dp(8), dp(20), 0)
+        box.addView(et, FrameLayout.LayoutParams(Ui.MATCH, Ui.WRAP))
+
+        AlertDialog.Builder(this)
+            .setTitle(getString(if (retry) R.string.dlg_password_wrong else R.string.dlg_password_needed))
+            .setMessage(getString(R.string.dlg_password_message))
+            .setView(box)
+            .setPositiveButton(getString(R.string.btn_open)) { _, _ ->
+                val pass = et.text.toChars()
+                Toast.makeText(this, getString(R.string.toast_decrypting), Toast.LENGTH_SHORT).show()
+                Thread {
+                    var plain: String? = null
+                    var error: Exception? = null
+                    try {
+                        plain = Backup.decrypt(raw, pass)
+                    } catch (e: Exception) {
+                        error = e
+                    } finally {
+                        pass.fill('\u0000')
+                    }
+                    val decrypted = plain
+                    val failure = error
+                    runOnUiThread {
+                        when {
+                            decrypted != null -> finishImport(decrypted)
+                            failure is Backup.WrongPasswordException -> askPasswordThenImport(raw, true)
+                            else -> Toast.makeText(
+                                this, getString(R.string.toast_import_invalid), Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }.start()
+            }
+            .setNegativeButton(getString(R.string.btn_cancel), null)
+            .show()
+    }
+
+    private fun finishImport(json: String) {
+        try {
+            val result = Backup.import(this, json, snippets)
             persist()
             Toast.makeText(
                 this,
@@ -564,22 +784,69 @@ class MainActivity : AppCompatActivity() {
         }
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED
+            != PackageManager.PERMISSION_GRANTED &&
+            !notifPermAsked()
         ) {
-            ActivityCompat.requestPermissions(
-                this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1
-            )
+            // Jalankan layanan setelah dialog izin ditutup (lihat notifPermLauncher)
+            markNotifPermAsked()
+            notifPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            return
         }
+        launchOverlayService()
+        if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            showNotificationsOffDialog()
+        }
+    }
+
+    private fun launchOverlayService() {
         ContextCompat.startForegroundService(
             this,
             Intent(this, OverlayService::class.java).setAction(OverlayService.ACTION_START)
         )
     }
 
+    private fun notifPermAsked() =
+        getSharedPreferences("snipbox_prefs", Context.MODE_PRIVATE).getBoolean("notif_asked", false)
+
+    private fun markNotifPermAsked() {
+        getSharedPreferences("snipbox_prefs", Context.MODE_PRIVATE).edit()
+            .putBoolean("notif_asked", true).apply()
+    }
+
+    /** Notifikasi dimatikan: ikon melayang tetap jalan, tapi notifikasi tidak akan tampil. */
+    private fun showNotificationsOffDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dlg_notif_off_title))
+            .setMessage(getString(R.string.dlg_notif_off_message))
+            .setPositiveButton(getString(R.string.btn_open_settings)) { _, _ ->
+                try {
+                    startActivity(
+                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                            .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                    )
+                } catch (e: Exception) {
+                    startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.parse("package:$packageName")
+                        )
+                    )
+                }
+            }
+            .setNegativeButton(getString(R.string.btn_later), null)
+            .show()
+    }
+
     override fun onResume() {
         super.onResume()
         snippets = SnippetStore.load(this)
         refresh()
+        // Kalau notifikasi baru diizinkan lewat Pengaturan, tampilkan lagi tanpa mengganggu ikon
+        if (OverlayService.running && NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            startService(
+                Intent(this, OverlayService::class.java).setAction(OverlayService.ACTION_REPOST)
+            )
+        }
         CrashLog.consume(this)?.let { showCrash(it) }
     }
 
