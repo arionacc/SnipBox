@@ -4,8 +4,6 @@
 
 # SnipBox
 
-🌐 **English** | [Bahasa Indonesia](README.id.md)
-
 An Android app for saving your favorite **code, functions, and commands** and copying them with a single tap, from anywhere, through a floating icon that appears on top of other apps.
 
 All data is stored locally on the device. The app does not request internet permission.
